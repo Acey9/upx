@@ -86,6 +86,7 @@ unsigned UiPacker::update_c_len = 0;
 unsigned UiPacker::update_u_len = 0;
 unsigned UiPacker::update_fc_len = 0;
 unsigned UiPacker::update_fu_len = 0;
+unsigned UiPacker::magic_hex_value = UPX_MAGIC_LE32;  // added by rootkiter
 
 /*************************************************************************
 // constants
@@ -479,6 +480,18 @@ void UiPacker::uiPackTotal() {
 /*************************************************************************
 // unpack
 **************************************************************************/
+
+// ADD. By rootkiter
+void UiPacker::uiUpdate_Magic(const char *magic){
+    unsigned magic_value;
+    sscanf(magic,"0x%x",&magic_value);
+    magic_hex_value = magic_value;
+}
+
+unsigned UiPacker::uiGetMagic(){
+    return magic_hex_value;
+}
+// END. By rootkiter
 
 void UiPacker::uiUnpackStart(const OutputFile *fo) {
     total_files++;

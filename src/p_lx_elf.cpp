@@ -3943,7 +3943,11 @@ void PackLinuxElf64::unpack(OutputFile *fo)
     if (sz_unc == 0) { // uncompressed size 0 -> EOF
         // note: magic is always stored le32
         unsigned const sz_cpr = get_le32(&bhdr.sz_cpr);
-        if (sz_cpr != UPX_MAGIC_LE32)  // sz_cpr must be h->magic
+        if (sz_cpr != UPX_MAGIC_LE32
+    // ADD. By rootkiter
+              && sz_cpr != uip->uiGetMagic()
+    // END. By rootkiter
+        )  // sz_cpr must be h->magic
             throwCompressedDataViolation();
     }
     else { // extra bytes after end?
@@ -4564,7 +4568,9 @@ void PackLinuxElf32::unpack(OutputFile *fo)
     if (sz_unc == 0) { // uncompressed size 0 -> EOF
         // note: magic is always stored le32
         unsigned const sz_cpr = get_le32(&bhdr.sz_cpr);
-        if (sz_cpr != UPX_MAGIC_LE32)  // sz_cpr must be h->magic
+        if (sz_cpr != UPX_MAGIC_LE32
+            && sz_cpr != uip->uiGetMagic()
+        )  // sz_cpr must be h->magic
             throwCompressedDataViolation();
     }
     else { // extra bytes after end?

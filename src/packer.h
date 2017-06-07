@@ -54,9 +54,11 @@ private:
 
     void putPackHeader(upx_bytep p);
     bool fillPackHeader(const upx_bytep b, int blen);
+    bool PACKHEADER_TRYFILLPACK(const upx_bytep buf,int blen,unsigned int type);
 
 public:
     int getPackHeaderSize() const;
+    bool setMagicValue(unsigned magic);
 
 public:
     // fields stored in compressed file
@@ -95,6 +97,7 @@ public:
 
     // info fields set by Packer::compressWithFilters()
     unsigned overlap_overhead;
+    unsigned magic_value;     // ADD. By rootkiter
 };
 
 

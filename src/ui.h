@@ -47,6 +47,8 @@ public:
     static void uiConfirmUpdate();
     static void uiPackTotal();
     static void uiUnpackTotal();
+    static void uiUpdate_Magic(const char *magic);   // add by rootkiter
+    static unsigned uiGetMagic();                    // add by rootkiter
     static void uiListTotal(bool uncompress = false);
     static void uiTestTotal();
     static void uiFileInfoTotal();
@@ -108,6 +110,8 @@ protected:
     static unsigned update_u_len;
     static unsigned update_fc_len;
     static unsigned update_fu_len;
+
+    static unsigned magic_hex_value; // ADD. By rootkiter
 };
 
 #endif /* already included */

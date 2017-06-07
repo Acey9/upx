@@ -288,6 +288,13 @@ void do_files(int i, int argc, char *argv[])
         UiPacker::uiHeader();
     }
 
+    if(opt->magic_value != NULL && strlen(opt->magic_value)>0){
+        UiPacker::uiUpdate_Magic(opt->magic_value);
+    }
+    else{
+        UiPacker::uiUpdate_Magic("0x21585055");
+    }
+
     for ( ; i < argc; i++)
     {
         infoHeader();

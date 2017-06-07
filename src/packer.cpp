@@ -713,6 +713,7 @@ int Packer::patchPackHeader(void *b, int blen)
 
 bool Packer::getPackHeader(void *b, int blen, bool allow_incompressible)
 {
+    ph.setMagicValue(uip->uiGetMagic());
     if (!ph.fillPackHeader((unsigned char *)b, blen))
         return false;
 

@@ -41,8 +41,10 @@ PackHeader::PackHeader() : version(-1), format(-1) {}
 // simple checksum for the header itself (since version 10)
 **************************************************************************/
 
-static unsigned char get_packheader_checksum(const upx_bytep buf, int len) {
-    assert(get_le32(buf) == UPX_MAGIC_LE32);
+static unsigned char get_packheader_checksum(const upx_bytep buf, int len,unsigned add_magic) {
+    assert(get_le32(buf) == UPX_MAGIC_LE32
+            || get_le32(buf) == add_magic
+    );
     // printf("1 %d\n", len);
     buf += 4;
     len -= 4;
@@ -103,13 +105,13 @@ void PackHeader::putPackHeader(upx_bytep p) {
     if (format < 128) {
         if (format == UPX_F_DOS_COM || format == UPX_F_DOS_SYS) {
             size = 22;
-            old_chksum = get_packheader_checksum(p, size - 1);
+            old_chksum = get_packheader_checksum(p, size - 1, magic_value);
             set_le16(p + 16, u_len);
             set_le16(p + 18, c_len);
             p[20] = (unsigned char) filter;
         } else if (format == UPX_F_DOS_EXE) {
             size = 27;
-            old_chksum = get_packheader_checksum(p, size - 1);
+            old_chksum = get_packheader_checksum(p, size - 1, magic_value);
             set_le24(p + 16, u_len);
             set_le24(p + 19, c_len);
             set_le24(p + 22, u_file_size);
@@ -118,7 +120,7 @@ void PackHeader::putPackHeader(upx_bytep p) {
             throwInternalError("invalid format");
         } else {
             size = 32;
-            old_chksum = get_packheader_checksum(p, size - 1);
+            old_chksum = get_packheader_checksum(p, size - 1, magic_value);
             set_le32(p + 16, u_len);
             set_le32(p + 20, c_len);
             set_le32(p + 24, u_file_size);
@@ -131,7 +133,7 @@ void PackHeader::putPackHeader(upx_bytep p) {
         set_le32(p + 12, c_adler);
     } else {
         size = 32;
-        old_chksum = get_packheader_checksum(p, size - 1);
+        old_chksum = get_packheader_checksum(p, size - 1, magic_value);
         set_be32(p + 8, u_len);
         set_be32(p + 12, c_len);
         set_be32(p + 16, u_adler);
@@ -158,17 +160,23 @@ void PackHeader::putPackHeader(upx_bytep p) {
         }
     }
     // store new header_checksum
-    p[size - 1] = get_packheader_checksum(p, size - 1);
+    p[size - 1] = get_packheader_checksum(p, size - 1, magic_value);
 }
 
 /*************************************************************************
 //
 **************************************************************************/
 
-bool PackHeader::fillPackHeader(const upx_bytep buf, int blen) {
-    int boff = find_le32(buf, blen, UPX_MAGIC_LE32);
-    if (boff < 0)
+bool PackHeader::setMagicValue(unsigned magic){
+    magic_value = magic;
+    return true;
+}
+
+bool PackHeader::PACKHEADER_TRYFILLPACK(const upx_bytep buf,int blen,unsigned int type){
+    int boff = find_le32(buf, blen, type);
+    if (boff < 0){
         return false;
+    }
 
     if (boff + 8 <= 0 || boff + 8 > blen)
         throwCantUnpack("header corrupted 1");
@@ -245,7 +253,7 @@ bool PackHeader::fillPackHeader(const upx_bytep buf, int blen) {
 
     // check header_checksum
     if (version > 9)
-        if (p[size - 1] != get_packheader_checksum(p, size - 1))
+        if (p[size - 1] != get_packheader_checksum(p, size - 1, magic_value))
             throwCantUnpack("header corrupted 3");
 
     if (c_len < 2 || u_len < 2 || !mem_size_valid_bytes(c_len) || !mem_size_valid_bytes(u_len))
@@ -257,5 +265,16 @@ bool PackHeader::fillPackHeader(const upx_bytep buf, int blen) {
     this->buf_offset = boff;
     return true;
 }
+
+bool PackHeader::fillPackHeader(const upx_bytep buf, int blen) {
+    if(PACKHEADER_TRYFILLPACK(buf,blen,UPX_MAGIC_LE32) == true){
+        return true;
+    }
+    else if( PACKHEADER_TRYFILLPACK(buf,blen,magic_value) == true){
+        return true;
+    }
+    return false;
+}
+
 
 /* vim:set ts=4 sw=4 et: */
